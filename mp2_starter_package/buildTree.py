@@ -171,16 +171,15 @@ def cal_gain_ratio(dataset, feature_set_ind, entropy):
 
 
 
-def cal_best_feature(dataset):
+def cal_best_feature(dataset,features):
 	##the last col of dataset is labels
 	feature_nums=dataset.shape[1]-1
-	samples_nums=dataset.shape[0]
 
 	curEntropy=cal_entropy(dataset[:,-1])
 
 	max_ratio=0
 	best_feature_ind=None;
-	for i in range(feature_nums):
+	for i in features:
 		feature_set=col_sparse(dataset,[i])
 		gain_ratio=cal_gain_ratio(feature_set,i,curEntropy)
 		if(gain_ratio>max_ratio):
@@ -197,6 +196,6 @@ def cal_best_feature(dataset):
 #            [2, 2, 1, 0, 'Y'],
 #            [2, 2, 1, 1, 'N'],
 #            [1, 2, 1, 1, 'Y']])
-
-cal_best_feature(data_set_np)
+features = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+cal_best_feature(data_set_np,features)
 
