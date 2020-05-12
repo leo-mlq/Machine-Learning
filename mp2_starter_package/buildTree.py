@@ -52,11 +52,12 @@ train_label_np = np.array([train_label])
 data_set_np = np.concatenate((train_data_np,train_label_np.T),axis=1)
 #print(data_set_np[122])
 
-def col_sparse(dataset, col_inds):
+def col_sparse(dataset, col_inds, attach_labels=True):
 	dataset_new = []
 	for ind in col_inds:
 		dataset_new.append(dataset[:,ind])
-	dataset_new.append(dataset[:,-1])
+	if(attach_labels):
+		dataset_new.append(dataset[:,-1])
 	return np.array(dataset_new).T
 
 def row_sparse(dataset, row_inds):
@@ -109,6 +110,7 @@ def cal_gain_ratio(dataset, feature_set_ind, entropy):
 		for i in range(dataset.shape[0]):
 			total+=(float(dataset[i][0]))
 
+		##divide continuous value upon average to make it discrete
 		dataset_mid.append(total/dataset.shape[0])
 		# print(sum)
 
@@ -121,7 +123,7 @@ def cal_gain_ratio(dataset, feature_set_ind, entropy):
 				
 				if(float(dataset_sort[:,0][l])<mid):
 					dneg_row_inds.append(l)
-				elif(float(dataset_sort[:,0][l])>mid):
+				elif(float(dataset_sort[:,0][l])>=mid):
 					dpos_row_inds.append(l)
 
 			dneg_subset=row_sparse(dataset_sort,dneg_row_inds)
@@ -185,17 +187,64 @@ def cal_best_feature(dataset,features):
 		if(gain_ratio>max_ratio):
 			max_ratio=gain_ratio
 			best_feature_ind=i
-	print(best_feature_ind)
+	return best_feature_ind
+
+
+def areRowsIdentical(dataset):
+	return np.all(np.all(dataset == dataset[0,:], axis = 1))
+
+def majorLabel(labels):
+	uniques, counts = np.unique(labels, return_counts=True)
+
+	maxCount=0
+	maxCounts_ind=None
+	for i in range(len(counts)):
+		if(counts[i]>maxCount):
+			maxCount=counts[i]
+			maxCounts_ind=i
+	return uniques[maxCounts_ind]
+
+
+
+def TreeGenerate(dataset, features_inds):
+	data=col_sparse(dataset,features_inds, attach_labels=False)
+
+	labels=dataset[:,-1]
+	labels_uniqes=np.unique(labels)
+	##all results of dataset are the same
+	if(len(labels_uniqes))==1:
+		return labels_uniqes[0]
+
+
+	if(len(features_inds))==0 or areRowsIdentical(data):
+		return majorLabel(labels)
 		
 		
 
-# data_set_np = np.array([[0, 0, 0, 0, 'N'],
-#            [0, 0, 0, 1, 'N'],
-#            [1, 0, 0, 0, 'Y'],
-#            [2, 1, 0, 0, 'Y'],
-#            [2, 2, 1, 0, 'Y'],
-#            [2, 2, 1, 1, 'N'],
-#            [1, 2, 1, 1, 'Y']])
-features = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
-cal_best_feature(data_set_np,features)
+data_set_np = np.array([[0, 0, 0, 0, 'N'],
+           [0, 0, 0, 1, 'N'],
+           [1, 0, 0, 0, 'Y'],
+           [2, 1, 0, 0, 'Y'],
+           [2, 2, 1, 0, 'Y'],
+           [2, 2, 1, 1, 'N'],
+           [1, 2, 1, 1, 'Y']])
+features_inds=[0,1,2,3]
+
+import operator
+def mayorClass(classList):
+    labelCount={}
+    for i in range(classList.size):
+        label=classList[i]
+        labelCount[label]=labelCount.get(label,0)+1
+    sortedLabel=sorted(labelCount.items(),key=operator.itemgetter(1),reverse=True)
+    return sortedLabel[0][0]
+
+
+#print(TreeGenerate(data_set_np, features_inds))
+
+print(majorLabel(data_set_np[:,-1]))
+
+
+#features_inds = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+#cal_best_feature(data_set_np,features)
 
