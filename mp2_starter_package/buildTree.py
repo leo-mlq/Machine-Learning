@@ -181,9 +181,9 @@ def cal_best_feature(dataset,features):
 
 	max_ratio=0
 	best_feature_ind=None;
-	for i in features:
-		feature_set=col_sparse(dataset,[i])
-		gain_ratio=cal_gain_ratio(feature_set,i,curEntropy)
+	for i in range(len(features)):
+		data=col_sparse(dataset,[features[i]])
+		gain_ratio=cal_gain_ratio(data,features[i],curEntropy)
 		if(gain_ratio>max_ratio):
 			max_ratio=gain_ratio
 			best_feature_ind=i
@@ -206,19 +206,43 @@ def majorLabel(labels):
 
 
 
-def TreeGenerate(dataset, features_inds):
-	data=col_sparse(dataset,features_inds, attach_labels=False)
-
+def TreeGenerate(dataset, features):
+	# data=col_sparse(dataset,features, attach_labels=False)
+	print(dataset)
 	labels=dataset[:,-1]
 	labels_uniqes=np.unique(labels)
+	
 	##all results of dataset are the same
 	if(len(labels_uniqes))==1:
 		return labels_uniqes[0]
 
 
-	if(len(features_inds))==0 or areRowsIdentical(data):
+	if(len(features))==0 or areRowsIdentical(col_sparse(dataset,features, attach_labels=False)):
 		return majorLabel(labels)
-		
+	
+	# print(features)
+	best_feature_ind = cal_best_feature(dataset,features)
+	best_feature = features[best_feature_ind]
+	print(best_feature_ind)
+	print(best_feature)
+
+	data = dataset[:,best_feature_ind]
+	print(data)
+	dTree={best_feature:{}}
+	
+	data_uniques = np.unique(data)
+	print(data_uniques)
+	for u in data_uniques:
+		subfeatures=features.copy()
+		row_inds = list(np.where(data==u))[0]
+		if(len(row_inds)==0):
+			dTree[best_feature][u]=majorLabel(labels)
+		else:
+			subdataset=row_sparse(dataset,row_inds)
+			subfeatures.pop(best_feature_ind)
+			print(features)
+			dTree[best_feature][u]=TreeGenerate(subdataset,subfeatures)
+	return dTree
 		
 
 data_set_np = np.array([[0, 0, 0, 0, 'N'],
@@ -230,19 +254,8 @@ data_set_np = np.array([[0, 0, 0, 0, 'N'],
            [1, 2, 1, 1, 'Y']])
 features_inds=[0,1,2,3]
 
-import operator
-def mayorClass(classList):
-    labelCount={}
-    for i in range(classList.size):
-        label=classList[i]
-        labelCount[label]=labelCount.get(label,0)+1
-    sortedLabel=sorted(labelCount.items(),key=operator.itemgetter(1),reverse=True)
-    return sortedLabel[0][0]
-
 
 #print(TreeGenerate(data_set_np, features_inds))
-
-print(majorLabel(data_set_np[:,-1]))
 
 
 #features_inds = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
