@@ -98,8 +98,8 @@ def get_averageAndindex(dataset):
 
 def cal_gain_ratio(dataset, feature_set_ind, entropy):
 
-	if(feature_set_ind<=7 or feature_set_ind==18):
-
+	# if(feature_set_ind<=7 or feature_set_ind==18):
+	if(feature_set_ind<=0 or feature_set_ind==18):
 
 		#passed in is col sparsed, first col is feature set, second col is label
 		uniques = np.unique(dataset[:,0])
@@ -227,21 +227,29 @@ def TreeGenerate(dataset, features, depth):
 	data = dataset[:,best_feature]
 	dTree={best_feature:{}}
 
-	if(best_feature<=7 or best_feature==18):
-
+	#if(best_feature<=7 or best_feature==18):
+	if(best_feature<=0 or best_feature==18):
 	# data_uniques = np.unique(data[:,0])
 		data_uniques = np.unique(data)
 
 		for u in data_uniques:
+			tmp = None
+			if(u==0.0): tmp='0'
+			elif(u==1.0): tmp='1'
+			else:
+				tmp=u
+
+		
+
 			subfeatures=features.copy()
 			row_inds = list(np.where(data==u))[0]
 			if(len(row_inds)==0):
-				dTree[best_feature][u]=majorLabel(labels)
+				dTree[best_feature][tmp]=majorLabel(labels)
 			else:
 				subdataset=row_sparse(dataset,row_inds)
 				subfeatures.pop(best_feature_ind)
 				# print(features)
-				dTree[best_feature][u]=TreeGenerate(subdataset,subfeatures, depth)
+				dTree[best_feature][tmp]=TreeGenerate(subdataset,subfeatures, depth)
 	else:
 		# print(best_feature)
 		new_d = depth - 1
@@ -264,8 +272,23 @@ def TreeGenerate(dataset, features, depth):
 
 	return dTree
 
-		
-		
+def TreePredict(tree, test_data, features):	
+		rootFeatureVal = list(tree.keys())[0]
+		testValueAtRoot = test_data[rootFeatureVal]
+		featureInd = features.index(testValueAtRoot)
+		feature = features[featureInd]
+
+		if(feature<=0 or feature==18):
+			nextNode=tree[rootFeatureVal][str(feature)]
+			## reach a leaf, make the decision
+			if(type(nextNode)).__name__!="dict":
+				return nextNode
+      ## nextNode is the root node of a substree
+			else:
+				TreePredict(nextNode, test_data, features)
+    
+
+    # if(type)
 
 # data_set_np = np.array([[0, 0, 0, 0, 'N'],
 #            [0, 0, 0, 1, 'N'],
@@ -274,16 +297,27 @@ def TreeGenerate(dataset, features, depth):
 #            [2, 2, 1, 0, 'Y'],
 #            [2, 2, 1, 1, 'N'],
 #            [1, 2, 1, 1, 'Y']])
-# features=[0,1,2,3]
-features = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
 
-# data_set_np = np.array([[0, 0.5, 'N'],
-#            [0, 0.9,'N'],
-#            [1, 1.2,'Y'],
-#            [2, 1,'Y'],
-#            [0, 0.85,'Y'],
-#            [0, 1.5,'N'],
-#            [0, 2,'Y']])
-# features=[0,1]
-depth = 6
-print(TreeGenerate(data_set_np,features, depth))
+
+data_set_np = np.array([[0, 0.5, 'N'],
+           [0, 0.9,'N'],
+           [1, 1.2,'Y'],
+           [2, 1,'Y'],
+           [0, 0.85,'Y'],
+           [0, 1.5,'N'],
+           [0, 2,'Y']])
+
+
+features = []
+for i in range((data_set_np.shape[1]-1)):
+  features.append(i)
+
+# test_data = [0, 1, 0, 0]
+
+
+
+depth = 3
+
+tree = TreeGenerate(data_set_np,features, depth)
+print(tree)
+# print(TreePredict(tree, test_data, features))
