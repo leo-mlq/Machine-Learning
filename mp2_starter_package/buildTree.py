@@ -315,10 +315,21 @@ for i in range((data_set_np.shape[1]-1)):
 
 # test_data = np.array([0, 1, 0, 0])
 # test_data = np.array([0, 0.056])
-test_data = [1.0, 1.0, 70.0, 68.0, 64.0, 63.0, 58.0, 38.0, 66.751648, 32.166708, 14.077515, 3.378666, 0.558174, 0.063925, 0.007796, 0.0, 0.50605, 0.101344, 0.0]
+testData = json.load(open('dev.json'))
+test_data = testData['data']
+
+test_label = testData['label']
 
 
-depth = 6
+depth = 8
 
 tree = TreeGenerate(data_set_np,features, depth)
-print(TreePredict(tree, test_data, features))
+
+result = []
+for i in range(len(test_data)):
+  r = TreePredict(tree, test_data[i], features)
+  result.append(r)
+
+
+print(test_label)
+print(result)
